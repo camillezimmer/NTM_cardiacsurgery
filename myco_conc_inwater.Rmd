@@ -1,5 +1,5 @@
 ---
-title: "myco_conc_inwater"
+title: "Mycobacterium concentrations in water"
 author: "Camille Zimmer"
 date: "2023-07-26"
 output: html_document
@@ -7,24 +7,47 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+#Clear environment
+rm(list = ls())
+
+#Load libraries
+library(tidyverse)
+library(dplyr)
+library(fitdistrplus)
+library(readxl)
+library(mc2d)
+library(VGAM)
 ```
 
-## R Markdown
+```{r dummygrondbeefdata, fig.width=9, fig.height=9}
+#non-normal dist 
+# (Delignette-Muller & Dutang, 2015, 2020)
+# https://www.jstatsoft.org/article/view/v064i04
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+#On selecting curve fitting:
+# https://rstudio-pubs-static.s3.amazonaws.com/321514_6e8d1a04e2164ef7b56251eb1ffc19d8.html
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+data("groundbeef")
+str(groundbeef)
+plotdist(groundbeef$serving, histo = TRUE, demp = TRUE)
 
-```{r cars}
-summary(cars)
+#Calculate skewness and kurtosis to investigate which distributions to use
+descdist(groundbeef$serving, boot = 1000)
+
+#Try different distributions
+fw = fitdist(groundbeef$serving, "weibull") 
+summary(fw)
+fg = fitdist(groundbeef$serving, "gamma") 
+summary(fg)
+fln = fitdist(groundbeef$serving, "lnorm") 
+summary(fln)
+
+#Plots
+par(mfrow = c(2, 2)) 
+plot.legend = c("Weibull", "lognormal", "gamma")
+denscomp(list(fw, fln, fg), legendtext = plot.legend) 
+qqcomp(list(fw, fln, fg), legendtext = plot.legend) 
+cdfcomp(list(fw, fln, fg), legendtext = plot.legend) 
+ppcomp(list(fw, fln, fg), legendtext = plot.legend)
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
