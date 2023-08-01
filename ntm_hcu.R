@@ -18,19 +18,24 @@ iters <- 10000
 #set parameters as vectors
 
 conc_hcu <- vector() #concentration of NTM in HCU
-
-conc_aer <- vector() #concentration of NTM in aerosols
+conc_air <- vector() #concentration of NTM in air/aerosols
+depo <- vector() #deposition rate
 t <- vector() #duration of exposure
 size_w <- vector() #size of wound
 dis_lr <- vector() #log-reduction from disinfection
 filt_lr <- vector() #log-reduction from filtration
-k <- vector() #exponential dose-response parameter
 dose <- vector() #dose received (no intervention)
+k <- vector() #exponential dose-response parameter
+Risk <- vector()
+###interventions
+
+dis_lr <- vector() #log-reduction from disinfecting HCU water
+conc_hcu_dis <- vector() #concentration in HCU after disinfection
 dose_dis <- vector() #dose received (disinfection)
+Risk_dis <- vector()
+
 dose_filt <- vector() #dose received (filtration)
 dose_flow <- vector() #dose received (laminar flow)
-Risk <- vector()
-Risk_dis <- vector()
 Risk_filt <- vector()
 Risk_flow <- vector()
 
@@ -38,21 +43,12 @@ Risk_flow <- vector()
 
 for(i in 1:iters)
 {
-  pop_size[i] <- runif(1,50,100) #size of population vaccinated; VARIABLE (small, med, large populations)
-  a0[i] <- TriRand(5.56,5.98,6.39) #intercept
-  a1[i] <- TriRand(0.83,0.96,1.14) #slope
-  res_err[i] <- TriRand(0.33,0.39,0.46) #random error
-  pred_excrtn[i] <- ((a1[i]*log(pop_size[i],10))+a0[i]+res_err[i]) #predicted excretion via linear regression
-  pred_excrtn[i] <- 10^(pred_excrtn[i]) #log10 scale 
-  wp[i] <- TriRand(59.3,65.8,73.0) #wetted perimeter
-  depth[i] <- TriRand(8,13,18) #depth  
-  dist[i] <- TriRand(100,367010,733920) #distance between community A and B
-  river[i] <- wp[i]*depth[i]*dist[i] #volume of river
-  Conc_vax[i] <- pred_excrtn[i]/river[i] #concentration of total poliovirus in river
-  decay[i] <- TriRand(0.0855, 0.1411, 0.2581) #decay rate
-  Conc_cap[i] <- Conc_vax[i]*10^(-decay[i]) #concentration of untreated captured water
-  IR[i] <- TriRand(0.5,0.75,1) #ingestion rate
-  dose_notreat[i] <- Conc_cap[i]*IR[i] 
+  conc_hcu[i] 
+  conc_air[i] <- 2005*log(conc_hcu[i])-19822
+  depo[i] <- 0.0058*conc_air[i]
+  size_w[i] <- 
+  t[i] <-
+  dose[i] <- size_w[i]*dep[i]*t[i]
   k[i] <- TriRand(0.225,0.491,1.39) 
   
 }
@@ -60,24 +56,16 @@ for(i in 1:iters)
 #Loop: intervention 1 (disinfection)
 for(i in 1:iters)
 {
-  pop_size[i] <- runif(1,50,100) #VARIABLE (small, med, large populations)
-  a0[i] <- TriRand(5.56,5.98,6.39) 
-  a1[i] <- TriRand(0.83,0.96,1.14) 
-  res_err[i] <- TriRand(0.33,0.39,0.46) 
-  pred_excrtn[i] <- ((a1[i]*log(pop_size[i],10))+a0[i]+res_err[i])
-  pred_excrtn[i] <- 10^(pred_excrtn[i])
-  wp[i] <- TriRand(59.3,65.8,73.0)
-  depth[i] <- TriRand(8,13,18)   
-  dist[i] <- TriRand(100,367010,733920)  
-  river[i] <- wp[i]*depth[i]*dist[i]
-  Conc_vax[i] <- pred_excrtn[i]/river[i]
-  decay[i] <- TriRand(0.0855, 0.1411, 0.2581)
-  Conc_cap[i] <- Conc_vax[i]*10^(-decay[i])
-  treat[i] <- runif(1,1,2.4) #log reduction from treatment        
-  Conc_treat[i] <- Conc_cap[i]*10^(-treat[i]) #concentration of treated captured water
-  IR[i] <- TriRand(0.5,0.75,1)  
-  dose_treat[i] <- Conc_treat[i]*IR[i]
-  k[i] <- TriRand(0.225,0.491,1.39)
+  conc_hcu[i]
+  dis_lr[i] <-
+  conc_hcu_dis[i] <- conc_hcu*dis_lr[i]
+  conc_air[i] <- 2005*log(conc_hcu_dis[i])-19822
+  depo[i] <- 0.0058*conc_air[i]
+  size_w[i] <- 
+  t[i] <-
+  dose[i] <- size_w[i]*dep[i]*t[i]
+  k[i] <- TriRand(0.225,0.491,1.39) 
+  
 }
 
 #Loop: intervention 2 (filter)
