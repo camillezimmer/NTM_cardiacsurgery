@@ -1,29 +1,15 @@
 setwd("~/Documents/GitHub_local/maddy/QMRAIV")
 
-if("triangle" %in% rownames(installed.packages())==FALSE){install.packages("triangle");require(triangle)}else(require(triangle))
-source("TriRand.r")
-
-require(stats)
-TriRand <- function(minValue, likeValue, maxValue)
-{
-  z = runif(1); .Random.seed[1:1];
-  t = sqrt(z*(maxValue-minValue)*(likeValue-minValue))+minValue
-  tt = maxValue-sqrt((1-z)*(maxValue-minValue)*(maxValue-likeValue))
-  if (tt < likeValue) {return(t)} else{return(tt)}
-}
-
 set.seed(1234)
 iters <- 10000
 
-#set parameters as vectors
+#---- Set parameters as vectors ----
 
 conc_hcu <- vector() #concentration of NTM in HCU
 conc_air <- vector() #concentration of NTM in air/aerosols
 depo <- vector() #deposition rate
-t <- vector() #duration of exposure
-size_w <- vector() #size of wound
-dis_lr <- vector() #log-reduction from disinfection
-filt_lr <- vector() #log-reduction from filtration
+t <- vector() #duration of exposure (hrs)
+size_w <- vector() #size of wound (cm^2)
 dose <- vector() #dose received (no intervention)
 k <- vector() #exponential dose-response parameter
 Risk <- vector()
@@ -34,26 +20,27 @@ conc_hcu_dis <- vector() #concentration in HCU after disinfection
 dose_dis <- vector() #dose received (disinfection)
 Risk_dis <- vector()
 
+filt_lr <- vector() #log-reduction from filtration
 dose_filt <- vector() #dose received (filtration)
 dose_flow <- vector() #dose received (laminar flow)
 Risk_filt <- vector()
 Risk_flow <- vector()
 
-#Loop: no intervention
+#---- Loop: no intervention ----
 
 for(i in 1:iters)
 {
-  conc_hcu[i] 
+  conc_hcu[i] <- rlnorm(10000,4.752,0.549)
   conc_air[i] <- 2005*log(conc_hcu[i])-19822
   depo[i] <- 0.0058*conc_air[i]
-  size_w[i] <- 
-  t[i] <-
-  dose[i] <- size_w[i]*dep[i]*t[i]
-  k[i] <- TriRand(0.225,0.491,1.39) 
-  
+  size_w[i] <- runif(10000,7.5,12.5)
+  t[i] <- runif(10000,46/60,294/60)
+  dose[i] <- size_w[i]*depo[i]*t[i]
+  k[i] <- 0.00000000312 #Mehta (death)
+  #k[i] <- 0.0000011 #Tomioka (lung lesions)
 }
 
-#Loop: intervention 1 (disinfection)
+#---- Loop: intervention 1 (disinfection) ----
 for(i in 1:iters)
 {
   conc_hcu[i]
@@ -68,30 +55,46 @@ for(i in 1:iters)
   
 }
 
-#Loop: intervention 2 (filter)
-#Loop: intervention 1 (laminar flow)
+#---- Loop: intervention 2 (filter) ----
 
-#Dose response 
+#Put code here :)
+
+#---- Loop: intervention 3 (laminar flow) ----
+
+#Put code here :)
+
+#---- DOSE RESPONSE ----
 exp.dr <- function(k,dose) 1-exp(-k*dose)
 Risk <- exp.dr(k[i],dose) 
 Risk_dis <- exp.dr(k[i],dose_dis)
 Risk_filt <- exp.dr(k[i],dose_filt)
 Risk_flow <- exp.dr(k[i],dose_flow)
 
-#RISK CHARACTERIZATION
+#---- RISK CHARACTERIZATION ----
 
-#Inferences
+#INFERENCES 
 
-Risks <- cbind(RiskNT,RiskT); colnames(Risks) <- c("Raw", "Treated")
-outsNT <- data.frame(mean(RiskNT), median(RiskNT), sd(RiskNT), min(RiskNT), quantile(RiskNT,probs=0.05), quantile(RiskNT, probs=0.95), max(RiskNT))
-outsT <- data.frame(mean(RiskT), median(RiskT), sd(RiskT), min(RiskT), quantile(RiskT,probs=0.05), quantile(RiskT, probs=0.95), max(RiskT))
-colnames(outsNT) <- c("Mean", "Median", "Std Dev", "Min", "Lower 95th", "Upper 95th", "Max")
-colnames(outsT) <- c("Mean", "Median" ,"Std Dev", "Min" ,"Lower 95th", "Upper 95th", "Max")
-outputs <- rbind(outsNT,outsT)
-rownames(outputs) <- c("Untreated", "Treated")
+Risks <- cbind(Risk,Risk_dis,Risk_filt,Risk_flow); colnames(Risks) <- c("None","Disinfection","Filtration","Laminar Flow")
+outs <- data.frame(mean(Risk), median(Risk), sd(Risk), min(Risk), quantile(Risk,probs=0.05), quantile(Risk, probs=0.95), max(Risk))
+outs_dis <- data.frame(mean(Risk_dis), median(Risk_dis), sd(Risk_dis), min(Risk_dis), quantile(Risk_dis,probs=0.05), quantile(Risk_dis, probs=0.95), max(Risk_dis))
+outs_filt <- data.frame(mean(Risk_filt), median(Risk_filt), sd(Risk_filt), min(Risk_filt), quantile(Risk_filt,probs=0.05), quantile(Risk_filt, probs=0.95), max(Risk_filt))
+outs_flow <- data.frame(mean(Risk_flow), median(Risk_flow), sd(Risk_flow), min(Risk_flow), quantile(Risk_flow,probs=0.05), quantile(Risk_flow, probs=0.95), max(Risk_flow))
+colnames(outs) <- c("Mean", "Median", "Std Dev", "Min", "Lower 95th", "Upper 95th", "Max")
+colnames(outs_dis) <- c("Mean", "Median" ,"Std Dev", "Min" ,"Lower 95th", "Upper 95th", "Max")
+colnames(outs_filt) <- c("Mean", "Median" ,"Std Dev", "Min" ,"Lower 95th", "Upper 95th", "Max")
+colnames(outs_flow) <- c("Mean", "Median" ,"Std Dev", "Min" ,"Lower 95th", "Upper 95th", "Max")
+outputs <- rbind(outs,outs_dis,outs_filt,outs_flow)
+rownames(outputs) <- c("None","Disinfection","Filtration","Laminar Flow")
 outputs
 
-#Visualization
+#VISUALIZATION
+
+
+hist(Risk)
+hist(Risk_dis)
+hist(Risk_filt)
+hist(Risk_flow)
+
 
 RiskNT_hist <- hist(RiskNT, plot=FALSE); RiskNT_P = RiskNT_hist$counts/iters
 RiskT_hist <- hist(RiskT, plot=FALSE); RiskT_P = RiskT_hist$counts/iters
@@ -106,7 +109,7 @@ boxplot(Risks, main= "Boxplot by Exposure", ylab= "Risk", col=c("#ebeafe","#fee7
 boxplot(Risks, main= "Boxplot by Exposure - Log", ylab= "Log Risk", log="y", col=c("#ebeafe","#fee7fb"))
 dev.off()
 
-#Sensitivity analysis
+#---- SENSITIVITY ANALYSES----
 # ---- LOAD PACKAGES ----
 
 if("reshape" %in% rownames(installed.packages())==FALSE){install.packages("reshape", 
@@ -189,22 +192,22 @@ print(Risk.sens)
 #dev.off()
 
 
-
-DailyRisks <- Risks
-
-d2A_n=2*365 #2L/day 
-
-daily2annualRisks <- function(DailyRisks, numPerDay=1, numPerYear=d2A_n){
-  calcAnnualRisk <- function(DailyRiskCol){
-    sampledRisks <- rep(sample(DailyRiskCol,numPerYear,replace=TRUE),numPerDay)
-    AnnualRisk <- 1-prod(1-sampledRisks)
-    return(AnnualRisk)
-  }
-  AnnualRisks <- c()
-  for(i in 1:length(DailyRisks))
-    AnnualRisks[i] <- calcAnnualRisk(DailyRisks) 
-  return(AnnualRisks)
-}
-
-AnnualRisksNT <- daily2annualRisks(RiskNT)
-AnnualRisksT <-  daily2annualRisks(RiskT)
+#---- Daily and Annualized Risks ----
+# DailyRisks <- Risks
+# 
+# d2A_n=2*365 #2L/day 
+# 
+# daily2annualRisks <- function(DailyRisks, numPerDay=1, numPerYear=d2A_n){
+#   calcAnnualRisk <- function(DailyRiskCol){
+#     sampledRisks <- rep(sample(DailyRiskCol,numPerYear,replace=TRUE),numPerDay)
+#     AnnualRisk <- 1-prod(1-sampledRisks)
+#     return(AnnualRisk)
+#   }
+#   AnnualRisks <- c()
+#   for(i in 1:length(DailyRisks))
+#     AnnualRisks[i] <- calcAnnualRisk(DailyRisks) 
+#   return(AnnualRisks)
+# }
+# 
+# AnnualRisksNT <- daily2annualRisks(RiskNT)
+# AnnualRisksT <-  daily2annualRisks(RiskT)
