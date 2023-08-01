@@ -28,7 +28,7 @@ str(raw_df)
 
 ```
 
-```{r data dist, fig.width=9, fig.height=9}
+```{r data dist, fig.width=7, fig.height=7}
 
 raw_df = filter(raw_df, pnq == "N")   
 
@@ -40,6 +40,45 @@ raw_df = raw_df %>%
   mutate(log10_conc_perL = log10(conc_perL))
 plotdist(raw_df$log10_conc_perL, histo = TRUE, demp = TRUE)
 
+# Calculate skewness and kurtosis to investigate which distributions to use
+# Regular data
+descdist(raw_df$conc_perL, boot = 1000)
+# Log10-transformed data
+descdist(raw_df$log10_conc_perL, boot = 1000)
+
+# OK, so it's... lognormal???
+fln = fitdist(raw_df$conc_perL, "lnorm", method="mle") 
+summary(fln)
+# graph lognormal
+par(mfrow = c(2, 2)) 
+denscomp(fln) 
+qqcomp(fln) 
+cdfcomp(fln) 
+ppcomp(fln)
+
+# Try taking the normal distribution of the log10-transformed data? 
+fn_log10 = fitdist(raw_df$log10_conc_perL, "norm", method="mle")
+summary(fn_log10)
+# graph it
+par(mfrow = c(2, 2)) 
+denscomp(fn_log10) 
+qqcomp(fn_log10) 
+cdfcomp(fn_log10) 
+ppcomp(fn_log10)
+
+# Try weibull and uniform for comparison
+fw = fitdist(raw_df$conc_perL, "weibull", method="mle") 
+summary(fw)
+funi = fitdist(raw_df$conc_perL, "unif", method="mle") 
+summary(funi)
+
+# Graph them all
+par(mfrow = c(2, 2)) 
+plot.legend = c("Weibull", "lognormal", "uniform")
+denscomp(list(fw, fln, funi), legendtext = plot.legend) 
+qqcomp(list(fw, fln, funi), legendtext = plot.legend) 
+cdfcomp(list(fw, fln, funi), legendtext = plot.legend) 
+ppcomp(list(fw, fln, funi), legendtext = plot.legend)
 
 ```
 
