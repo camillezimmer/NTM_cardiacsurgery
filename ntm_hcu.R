@@ -30,17 +30,19 @@ Risk_flow <- vector()
 
 for(i in 1:iters)
 {
-  conc_hcu[i] <- rlnorm(10000,4.752,0.549)
-  conc_air[i] <- 2005*log(conc_hcu[i])-19822
+  conc_hcu[i] <- rlnorm(10000,-2.15526,0.549)
+  #conc_air[i] <- 2005*log(conc_hcu[i])-19822
+  conc_air[i] <- 0.0001*conc_hcu[i]+14.556
+  #conc_air[i] <- 2005*conc_hcu[i]-19822
   depo[i] <- 0.0058*conc_air[i]
   size_w[i] <- runif(10000,7.5,12.5)
   t[i] <- runif(10000,46/60,294/60)
   dose[i] <- size_w[i]*depo[i]*t[i]
-  k[i] <- 0.00000000312 #Mehta (death)
-  #k[i] <- 0.0000011 #Tomioka (lung lesions)
+  #k[i] <- 0.00000000312 #Mehta (death)
+  k[i] <- 0.0000011 #Tomioka (lung lesions)
 }
 
-#---- Loop: intervention 1 (disinfection) ----
+#---- Loop: intervention 1 (disinfection) ----()
 for(i in 1:iters)
 {
   conc_hcu[i]
