@@ -3,9 +3,12 @@ setwd("~/Documents/GitHub_local/maddy/QMRAIV")
 set.seed(1234)
 iters <- 10000
 
+require(EnvStats)
+
 #---- Set parameters as vectors ----
 
 conc_hcu <- vector() #concentration of NTM in HCU
+aero_ratio <- vector() #aerosolization ratio
 conc_air <- vector() #concentration of NTM in air/aerosols
 depo <- vector() #deposition rate
 t <- vector() #duration of exposure (hrs)
@@ -13,6 +16,27 @@ size_w <- vector() #size of wound (cm^2)
 dose <- vector() #dose received (no intervention)
 k <- vector() #exponential dose-response parameter
 Risk <- vector()
+
+#---- Loop: no intervention ----
+
+for(i in 1:iters)
+{
+  #conc_hcu[i] <- rlnorm(10000,-2.15526,0.549)
+  conc_hcu[i] <- rlnormTrunc(10000,-6.463297,5.918223,max=100)
+  #aero_ratio[i] <- rlnorm(100000,16.96646,2.252833)
+  #aero_ratio[i] <- rnorm(10000,7.368443,0.978393)
+  conc_air[i] <- 0.0001*conc_hcu[i]+14.556
+  #conc_air[i] <- conc_hcu[i]*aero_ratio[i]
+  depo[i] <- 0.0058*conc_air[i]
+  size_w[i] <- runif(10000,7.5,12.5)
+  t[i] <- runif(10000,46/60,294/60)
+  dose[i] <- size_w[i]*depo[i]*t[i]
+  #k[i] <- 0.00000000312 #endpoint: death
+  #k[i] <- 0.0000011 #endpoint: lung lesions
+  k[i] <- rlnorm(10000,-13.742,0.208) #endpoint: subclinical infection
+  Risk[i] <- 1-exp(-k[i]*dose[i])
+}
+
 ###interventions
 
 dis_lr <- vector() #log-reduction from disinfecting HCU water
@@ -26,23 +50,7 @@ dose_flow <- vector() #dose received (laminar flow)
 Risk_filt <- vector()
 Risk_flow <- vector()
 
-#---- Loop: no intervention ----
-
-for(i in 1:iters)
-{
-  conc_hcu[i] <- rlnorm(10000,-2.15526,0.549)
-  #conc_air[i] <- 2005*log(conc_hcu[i])-19822
-  conc_air[i] <- 0.0001*conc_hcu[i]+14.556
-  #conc_air[i] <- 2005*conc_hcu[i]-19822
-  depo[i] <- 0.0058*conc_air[i]
-  size_w[i] <- runif(10000,7.5,12.5)
-  t[i] <- runif(10000,46/60,294/60)
-  dose[i] <- size_w[i]*depo[i]*t[i]
-  #k[i] <- 0.00000000312 #Mehta (death)
-  k[i] <- 0.0000011 #Tomioka (lung lesions)
-}
-
-#---- Loop: intervention 1 (disinfection) ----()
+#---- Loop: intervention 1 (disinfection) ----
 for(i in 1:iters)
 {
   conc_hcu[i]
@@ -66,8 +74,11 @@ for(i in 1:iters)
 #Put code here :)
 
 #---- DOSE RESPONSE ----
-exp.dr <- function(k,dose) 1-exp(-k*dose)
-Risk <- exp.dr(k[i],dose) 
+# exp.dr <- function(k,dose) 1-exp(-k*dose)
+# Risk <- exp.dr(k[i],dose[i]) 
+# 
+# Risk <- 1-exp(-k[i]*dose[i])
+
 Risk_dis <- exp.dr(k[i],dose_dis)
 Risk_filt <- exp.dr(k[i],dose_filt)
 Risk_flow <- exp.dr(k[i],dose_flow)
@@ -91,6 +102,16 @@ outputs
 
 #VISUALIZATION
 
+#Distribution of input parameters
+#hist(conc_hcu, main = "", xlab = "Concentration (CFU/mL)", xlim=c(0,1)); rug(conc_hcu, col = "blue")
+hist(conc_hcu)
+hist(aero_ratio)
+hist(conc_air)
+hist(depo)
+hist(t)
+hist(size_w)
+hist(dose)
+hist(k)
 
 hist(Risk)
 hist(Risk_dis)
